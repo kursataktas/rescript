@@ -231,7 +231,7 @@ let error_of_exn exn =
 
 (* taken from https://github.com/rescript-lang/ocaml/blob/d4144647d1bf9bc7dc3aadc24c25a7efa3a67915/parsing/location.ml#L380 *)
 (* This is the error report entry point. We'll replace the default reporter with this one. *)
-let rec default_error_reporter ?(src = None) ppf {loc; msg; sub} =
+let rec report_error ?(src = None) ppf {loc; msg; sub} =
   setup_colors ();
   (* open a vertical box. Everything in our message is indented 2 spaces *)
   (* If src is given, it will display a syntax error after parsing. *)
@@ -243,12 +243,8 @@ let rec default_error_reporter ?(src = None) ppf {loc; msg; sub} =
   Format.fprintf ppf "@[<v>@,  %a@,  %s@,@]"
     (print ~src ~message_kind:`error intro)
     loc msg;
-  List.iter (Format.fprintf ppf "@,@[%a@]" (default_error_reporter ~src)) sub
+  List.iter (Format.fprintf ppf "@,@[%a@]" (report_error ~src)) sub
 (* no need to flush here; location's report_exception (which uses this ultimately) flushes *)
-
-let error_reporter = ref default_error_reporter
-
-let report_error ?(src = None) ppf err = !error_reporter ~src ppf err
 
 let error_of_printer loc print x = errorf ~loc "%a@?" print x
 
